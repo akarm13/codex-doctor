@@ -17,7 +17,7 @@ import {
   renderAnalyzeOutput,
 } from "./viz.js";
 import { generateAgentsRules } from "./suggestions.js";
-import { truncateProjectName } from "./utils/truncate-project-name.js";
+import { truncateProjectName, stripProjectPath } from "./utils/truncate-project-name.js";
 
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const DIM = "\x1b[2m";
@@ -134,9 +134,8 @@ program
       const report = await generateReport(
         options.project,
         (current, total, projectName) => {
-          const shortName = truncateProjectName(projectName, projectName.length).trimEnd();
           spinner.update(
-            `Analyzing ${shortName} (${current}/${total})`,
+            `Analyzing ${stripProjectPath(projectName)} (${current}/${total})`,
           );
         },
       );
