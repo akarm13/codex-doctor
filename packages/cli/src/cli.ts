@@ -52,19 +52,19 @@ const createSpinner = () => {
 const program = new Command();
 
 program
-  .name("claude-doctor")
+  .name("codex-doctor")
   .description(
-    "Diagnose your Claude Code sessions. Analyzes transcripts for behavioral anti-patterns and generates rules for CLAUDE.md / AGENTS.md.",
+    "Diagnose your Codex sessions. Analyzes transcripts for behavioral anti-patterns and generates rules for AGENTS.md.",
   )
   .version("0.0.1")
   .argument("[session]", "Session ID or .jsonl path to check a specific session")
   .option("-p, --project <path>", "Filter to a specific project path")
-  .option("--rules", "Output rules for CLAUDE.md / AGENTS.md")
-  .option("--save", "Save analysis model to .claude-doctor/")
+  .option("--rules", "Output rules for AGENTS.md")
+  .option("--save", "Save analysis model to .codex-doctor/")
   .option("--json", "Output as JSON")
   .option(
     "-d, --dir <path>",
-    "Project root for .claude-doctor/",
+    "Project root for .codex-doctor/",
   )
   .action(
     async (
@@ -133,8 +133,8 @@ program
       const report = await generateReport(
         options.project,
         (current, total, projectName) => {
-          const shortName = projectName.replace(
-            /^Users\/[^/]+\/Developer\//,
+        const shortName = projectName.replace(
+            /^(?:Users|home)\/[^/]+\/(?:Developer\/)?/,
             "",
           );
           spinner.update(

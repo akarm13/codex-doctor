@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import {
-  CLAUDE_PROJECTS_DIR,
+  CODEX_SESSIONS_DIR,
   MODEL_TOP_ISSUES_LIMIT,
   SAVED_MODEL_VERSION,
 } from "./constants.js";
@@ -15,7 +15,7 @@ import { detectErrorLoops } from "./signals/error-loops.js";
 import { detectToolInefficiency } from "./signals/tool-efficiency.js";
 import { detectBehavioralSignals } from "./signals/behavioral.js";
 
-const MODEL_DIR = ".claude-doctor";
+const MODEL_DIR = ".codex-doctor";
 const MODEL_FILE = "model.json";
 const GUIDANCE_FILE = "guidance.md";
 
@@ -87,7 +87,7 @@ export const loadModel = (projectRoot?: string): SavedModel | undefined => {
 const buildGuidanceDoc = (model: SavedModel): string => {
   const lines: string[] = [];
 
-  lines.push("# Claude Doctor Session Guidance");
+  lines.push("# Codex Doctor Session Guidance");
   lines.push("");
   lines.push(
     `Based on analysis of ${model.totalSessions} sessions across ${model.totalProjects} projects.`,
@@ -278,7 +278,7 @@ const buildSessionGuidance = (
     );
     if (matchingHistorical.length > 0) {
       guidance.push(
-        `This session is repeating known issues from past sessions: ${matchingHistorical.map((signal) => signal.signalName).join(", ")}. Check .claude-doctor/guidance.md for project-specific rules.`,
+        `This session is repeating known issues from past sessions: ${matchingHistorical.map((signal) => signal.signalName).join(", ")}. Check .codex-doctor/guidance.md for project-specific rules.`,
       );
     }
   }
@@ -289,7 +289,7 @@ const buildSessionGuidance = (
 export const findLatestSession = (
   projectFilter?: string,
 ): { filePath: string; sessionId: string } | undefined => {
-  const projectsDir = path.join(os.homedir(), CLAUDE_PROJECTS_DIR);
+  const projectsDir = path.join(os.homedir(), CODEX_SESSIONS_DIR);
   if (!fs.existsSync(projectsDir)) return undefined;
 
   const projectDirs = fs

@@ -1,10 +1,10 @@
 {
-  "name": "claude-doctor",
+  "name": "codex-doctor",
   "version": "0.0.3",
-  "description": "Analyze Claude Code transcripts for quality signals, sentiment drift, and behavioral anti-patterns.",
+  "description": "Analyze Codex transcripts for quality signals, sentiment drift, and behavioral anti-patterns.",
   "keywords": [
-    "claude",
-    "claude-code",
+    "codex",
+    "openai",
     "agents",
     "sentiment",
     "analysis",
@@ -13,9 +13,9 @@
     "ai",
     "llm"
   ],
-  "homepage": "https://github.com/aidenybai/claude-doctor",
+  "homepage": "https://github.com/akarm13/codex-doctor",
   "bugs": {
-    "url": "https://github.com/aidenybai/claude-doctor/issues"
+    "url": "https://github.com/akarm13/codex-doctor/issues"
   },
   "license": "MIT",
   "author": {
@@ -24,10 +24,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aidenybai/claude-doctor.git"
+    "url": "git+https://github.com/akarm13/codex-doctor.git"
   },
   "bin": {
-    "claude-doctor": "./dist/cli.mjs"
+    "codex-doctor": "./dist/cli.mjs"
   },
   "files": [
     "dist",

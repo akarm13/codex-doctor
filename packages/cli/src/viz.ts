@@ -320,7 +320,7 @@ const PROJECT_NAME_WIDTH = 30;
 const BAR_LABEL_WIDTH = 4;
 
 const truncateProjectName = (name: string): string => {
-  const shortName = name.replace(/^Users\/[^/]+\/Developer\//, "");
+  const shortName = name.replace(/^(?:Users|home)\/[^/]+\/(?:Developer\/)?/, "");
   if (shortName.length <= PROJECT_NAME_WIDTH) return shortName.padEnd(PROJECT_NAME_WIDTH);
   return "…" + shortName.slice(-(PROJECT_NAME_WIDTH - 1));
 };
@@ -348,7 +348,7 @@ export const renderAnalyzeOutput = async (
 ): Promise<string> => {
   const lines: string[] = [];
 
-  lines.push(`${BOLD}Claude Optimizer${RESET}  ${DIM}${report.totalProjects} projects · ${report.totalSessions} sessions${RESET}`);
+  lines.push(`${BOLD}Codex Optimizer${RESET}  ${DIM}${report.totalProjects} projects · ${report.totalSessions} sessions${RESET}`);
   lines.push("");
 
   const projectsToShow = report.projects.slice(0, REPORT_PROJECT_LIMIT);
@@ -404,7 +404,7 @@ export const renderAnalyzeOutput = async (
   }
 
   if (report.suggestions.length > 0) {
-    lines.push(`${BOLD}Suggested rules for CLAUDE.md / AGENTS.md${RESET}`);
+    lines.push(`${BOLD}Suggested rules for AGENTS.md${RESET}`);
     lines.push("");
     for (const suggestion of report.suggestions) {
       lines.push(`  ${YELLOW}→${RESET} ${suggestion}`);

@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
-import { CLAUDE_PROJECTS_DIR } from "./constants.js";
+import { CODEX_SESSIONS_DIR } from "./constants.js";
 import {
   parseTranscriptFile,
   extractUserMessages,
@@ -15,7 +15,7 @@ const decodeProjectName = (encodedName: string): string =>
   encodedName.replace(/-/g, "/").replace(/^\//, "");
 
 export const getProjectsDir = (): string =>
-  path.join(os.homedir(), CLAUDE_PROJECTS_DIR);
+  path.join(os.homedir(), CODEX_SESSIONS_DIR);
 
 export const discoverProjects = (projectsDir: string): string[] => {
   if (!fs.existsSync(projectsDir)) return [];

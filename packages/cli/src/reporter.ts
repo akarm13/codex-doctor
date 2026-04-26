@@ -127,7 +127,7 @@ export const generateReport = async (
 export const formatReportMarkdown = (report: AnalysisReport): string => {
   const lines: string[] = [];
 
-  lines.push("# Claude Optimizer Report");
+  lines.push("# Codex Optimizer Report");
   lines.push("");
   lines.push(`Generated: ${report.generatedAt.toISOString()}  `);
   lines.push(`Projects: ${report.totalProjects} | Sessions: ${report.totalSessions}`);
@@ -200,7 +200,7 @@ export const formatReportMarkdown = (report: AnalysisReport): string => {
   }
 
   if (report.suggestions.length > 0) {
-    lines.push("## Suggested rules for CLAUDE.md / AGENTS.md");
+    lines.push("## Suggested rules for AGENTS.md");
     lines.push("");
     for (const suggestion of report.suggestions) {
       lines.push(`- ${suggestion}`);
