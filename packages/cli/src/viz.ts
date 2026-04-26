@@ -18,6 +18,7 @@ import {
   VIZ_SENTIMENT_RED_THRESHOLD,
   VIZ_SENTIMENT_YELLOW_THRESHOLD,
 } from "./constants.js";
+import { truncateProjectName } from "./utils/truncate-project-name.js";
 
 const analyzer = new Sentiment();
 
@@ -319,12 +320,6 @@ export const renderCheckOutput = (
 const PROJECT_NAME_WIDTH = 30;
 const BAR_LABEL_WIDTH = 4;
 
-const truncateProjectName = (name: string): string => {
-  const shortName = name.replace(/^(?:Users|home)\/[^/]+\/(?:Developer\/)?/, "");
-  if (shortName.length <= PROJECT_NAME_WIDTH) return shortName.padEnd(PROJECT_NAME_WIDTH);
-  return "…" + shortName.slice(-(PROJECT_NAME_WIDTH - 1));
-};
-
 const scoreToHealthPercentage = (project: ProjectAnalysis): number => {
   if (project.signals.length === 0) return 100;
 
@@ -355,7 +350,7 @@ export const renderAnalyzeOutput = async (
 
   for (const project of projectsToShow) {
     const healthPercentage = scoreToHealthPercentage(project);
-    const displayName = truncateProjectName(project.projectName);
+    const displayName = truncateProjectName(project.projectName, PROJECT_NAME_WIDTH);
     const percentLabel = `${healthPercentage}%`.padStart(BAR_LABEL_WIDTH);
 
     const barColor =
