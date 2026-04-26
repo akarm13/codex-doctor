@@ -3,13 +3,12 @@ import {
   ERROR_LOOP_CRITICAL_THRESHOLD,
   ERROR_SNIPPET_MAX_LENGTH,
 } from "../constants.js";
-import { parseTranscriptFile, isUserEvent, isAssistantEvent } from "../parser.js";
+import { isUserEvent, isAssistantEvent } from "../parser.js";
 
-export const detectErrorLoops = async (
-  filePath: string,
+export const detectErrorLoops = (
+  events: TranscriptEvent[],
   sessionId: string,
-): Promise<SignalResult[]> => {
-  const events = await parseTranscriptFile(filePath);
+): SignalResult[] => {
   const errorSequences: ErrorSequence[] = [];
 
   let currentToolName: string | undefined;

@@ -137,4 +137,42 @@ export const getSessionTimeRange = (
   };
 };
 
+const historyEntryToTranscriptEvent = (entry: HistoryEntry): UserEvent => ({
+  type: "user",
+  sessionId: entry.session_id,
+  timestamp: new Date(entry.ts * 1000).toISOString(),
+  message: { role: "user", content: entry.text },
+});
+
+export const parseHistoryFile = async (
+  filePath: string,
+): Promise<Map<string, TranscriptEvent[]>> => {
+  const sessions = new Map<string, TranscriptEvent[]>();
+  const stream = fs.createReadStream(filePath, { encoding: "utf-8" });
+  const lineReader = readline.createInterface({ input: stream, crlfDelay: Infinity });
+
+  for await (const line of lineReader) {
+    if (!line.trim()) continue;
+    try {
+      const entry = JSON.parse(line) as HistoryEntry;
+      if (!entry.session_id || typeof entry.ts !== "number" || typeof entry.text !== "string") continue;
+      const existing = sessions.get(entry.session_id) ?? [];
+      existing.push(historyEntryToTranscriptEvent(entry));
+      sessions.set(entry.session_id, existing);
+    } catch {
+      /* malformed JSONL line */
+    }
+  }
+
+  return sessions;
+};
+
+export const parseHistorySessionEvents = async (
+  filePath: string,
+  sessionId: string,
+): Promise<TranscriptEvent[]> => {
+  const sessions = await parseHistoryFile(filePath);
+  return sessions.get(sessionId) ?? [];
+};
+
 export { isUserEvent, isAssistantEvent };

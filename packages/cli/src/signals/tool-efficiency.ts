@@ -6,13 +6,12 @@ import {
   READ_ONLY_SESSION_THRESHOLD,
   READ_ONLY_SESSION_SCORE,
 } from "../constants.js";
-import { parseTranscriptFile, extractToolUses } from "../parser.js";
+import { extractToolUses } from "../parser.js";
 
-export const detectToolInefficiency = async (
-  filePath: string,
+export const detectToolInefficiency = (
+  events: TranscriptEvent[],
   sessionId: string,
-): Promise<SignalResult[]> => {
-  const events = await parseTranscriptFile(filePath);
+): SignalResult[] => {
   const toolUses = extractToolUses(events);
 
   let readCount = 0;

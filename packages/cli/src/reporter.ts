@@ -36,32 +36,32 @@ export const analyzeProject = async (
   signals.push(...abandonmentSignals);
 
   for (const session of project.sessions) {
-    const sentiment = await analyzeSessionSentiment(
-      session.filePath,
+    const sentiment = analyzeSessionSentiment(
+      session.events,
       session.sessionId,
     );
     signals.push(...sentimentToSignals(sentiment));
 
-    const thrashingSignals = await detectThrashing(
-      session.filePath,
+    const thrashingSignals = detectThrashing(
+      session.events,
       session.sessionId,
     );
     signals.push(...thrashingSignals);
 
-    const errorLoopSignals = await detectErrorLoops(
-      session.filePath,
+    const errorLoopSignals = detectErrorLoops(
+      session.events,
       session.sessionId,
     );
     signals.push(...errorLoopSignals);
 
-    const efficiencySignals = await detectToolInefficiency(
-      session.filePath,
+    const efficiencySignals = detectToolInefficiency(
+      session.events,
       session.sessionId,
     );
     signals.push(...efficiencySignals);
 
-    const behavioralSignals = await detectBehavioralSignals(
-      session.filePath,
+    const behavioralSignals = detectBehavioralSignals(
+      session.events,
       session.sessionId,
     );
     signals.push(...behavioralSignals);

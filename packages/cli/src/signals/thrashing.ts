@@ -4,7 +4,7 @@ import {
   THRASHING_SEVERITY_CRITICAL,
   THRASHING_SEVERITY_HIGH,
 } from "../constants.js";
-import { parseTranscriptFile, extractToolUses } from "../parser.js";
+import { extractToolUses } from "../parser.js";
 
 const extractFilePath = (input: Record<string, unknown>): string | undefined => {
   for (const key of ["file_path", "path", "filePath", "target_file", "file"]) {
@@ -14,11 +14,10 @@ const extractFilePath = (input: Record<string, unknown>): string | undefined => 
   return undefined;
 };
 
-export const detectThrashing = async (
-  filePath: string,
+export const detectThrashing = (
+  events: TranscriptEvent[],
   sessionId: string,
-): Promise<SignalResult[]> => {
-  const events = await parseTranscriptFile(filePath);
+): SignalResult[] => {
   const toolUses = extractToolUses(events);
 
   const editCounts = new Map<string, FileEditCount>();

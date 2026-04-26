@@ -1,5 +1,5 @@
 import Sentiment from "sentiment";
-import { parseTranscriptFile, isUserEvent } from "./parser.js";
+import { isUserEvent } from "./parser.js";
 import {
   SENTINEL_CUSTOM_TOKENS,
   INTERRUPT_PATTERN,
@@ -34,10 +34,9 @@ for (const [phrase, score] of Object.entries(SENTINEL_CUSTOM_TOKENS)) {
 const isMetaContent = (content: string): boolean =>
   META_MESSAGE_PATTERNS.some((pattern) => pattern.test(content));
 
-export const buildSessionTimeline = async (
-  filePath: string,
-): Promise<SessionTimeline> => {
-  const events = await parseTranscriptFile(filePath);
+export const buildSessionTimeline = (
+  events: TranscriptEvent[],
+): SessionTimeline => {
   const turns: TurnHealth[] = [];
   let turnIndex = 0;
 
@@ -153,7 +152,6 @@ export const buildSessionTimeline = async (
 
   return { turns, healthPercentage, summary };
 };
-
 const GREEN = "\x1b[32m";
 const YELLOW = "\x1b[33m";
 const RED = "\x1b[31m";

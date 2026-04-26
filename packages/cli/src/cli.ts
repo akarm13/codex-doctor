@@ -18,6 +18,8 @@ import {
 } from "./viz.js";
 import { generateAgentsRules } from "./suggestions.js";
 import { truncateProjectName, stripProjectPath } from "./utils/truncate-project-name.js";
+import { parseTranscriptFile, parseHistorySessionEvents } from "./parser.js";
+import { getHistoryFilePath } from "./indexer.js";
 
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const DIM = "\x1b[2m";
@@ -83,26 +85,28 @@ program
         spinner.start("Checking session…");
 
         const isFilePath = sessionArg.includes("/") || sessionArg.endsWith(".jsonl");
-        let sessionFilePath: string;
+        let sessionEvents: TranscriptEvent[];
         let sessionId: string;
 
         if (isFilePath) {
-          sessionFilePath = sessionArg;
+          sessionEvents = await parseTranscriptFile(sessionArg);
           sessionId = sessionArg.replace(/.*\//, "").replace(".jsonl", "");
         } else {
-          const latest = findLatestSession(options.project);
-          if (!latest) {
-            spinner.stop();
-            console.error("No sessions found.");
-            process.exit(1);
+          sessionEvents = await parseHistorySessionEvents(getHistoryFilePath(), sessionArg);
+          if (sessionEvents.length === 0) {
+            const latest = await findLatestSession();
+            if (!latest) {
+              spinner.stop();
+              console.error("No sessions found.");
+              process.exit(1);
+            }
+            sessionEvents = latest.events;
           }
-          const sessionDir = latest.filePath.replace(/\/[^/]+$/, "");
-          sessionFilePath = `${sessionDir}/${sessionArg}.jsonl`;
           sessionId = sessionArg;
         }
 
         const savedModel = loadModel(options.dir);
-        const result = await checkSession(sessionFilePath, sessionId, savedModel);
+        const result = await checkSession(sessionEvents, sessionId, savedModel);
 
         if (options.json) {
           spinner.stop();
@@ -111,7 +115,7 @@ program
         }
 
         const { turns, healthPercentage, summary } =
-          await buildSessionTimeline(sessionFilePath);
+          buildSessionTimeline(sessionEvents);
 
         spinner.stop();
 

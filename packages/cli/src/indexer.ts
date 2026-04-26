@@ -3,113 +3,59 @@ import * as path from "node:path";
 import * as os from "node:os";
 import { CODEX_SESSIONS_DIR } from "./constants.js";
 import {
-  parseTranscriptFile,
+  parseHistoryFile,
   extractUserMessages,
-  extractToolUses,
-  extractToolErrors,
   countInterrupts,
   getSessionTimeRange,
 } from "./parser.js";
 
-const decodeProjectName = (encodedName: string): string =>
-  encodedName.replace(/-/g, "/").replace(/^\//, "");
+export const HISTORY_FILENAME = "history.jsonl";
 
-export const getProjectsDir = (): string =>
-  path.join(os.homedir(), CODEX_SESSIONS_DIR);
-
-export const discoverProjects = (projectsDir: string): string[] => {
-  if (!fs.existsSync(projectsDir)) return [];
-  return fs
-    .readdirSync(projectsDir, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
-};
-
-export const discoverSessions = (projectDir: string): string[] =>
-  fs
-    .readdirSync(projectDir)
-    .filter(
-      (fileName) =>
-        fileName.endsWith(".jsonl") && !fileName.startsWith("agent-"),
-    );
-
-export const buildSessionMetadata = async (
-  filePath: string,
-  projectPath: string,
-  projectName: string,
-): Promise<SessionMetadata> => {
-  const sessionId = path.basename(filePath, ".jsonl");
-  const events = await parseTranscriptFile(filePath);
-  const userMessages = extractUserMessages(events);
-  const toolUses = extractToolUses(events);
-  const toolErrorCount = extractToolErrors(events);
-  const interruptCount = countInterrupts(events);
-  const { start, end } = getSessionTimeRange(events);
-
-  const assistantMessageCount = events.filter(
-    (event) => event.type === "assistant",
-  ).length;
-
-  return {
-    sessionId,
-    projectPath,
-    projectName,
-    filePath,
-    startTime: start,
-    endTime: end,
-    userMessageCount: userMessages.length,
-    assistantMessageCount,
-    toolCallCount: toolUses.length,
-    toolErrorCount,
-    interruptCount,
-  };
-};
+export const getHistoryFilePath = (): string =>
+  path.join(os.homedir(), CODEX_SESSIONS_DIR, HISTORY_FILENAME);
 
 export const indexAllProjects = async (
-  projectFilter?: string,
+  _projectFilter?: string,
 ): Promise<ProjectMetadata[]> => {
-  const projectsDir = getProjectsDir();
-  const projectDirs = discoverProjects(projectsDir);
-  const projects: ProjectMetadata[] = [];
+  const historyPath = getHistoryFilePath();
+  if (!fs.existsSync(historyPath)) return [];
 
-  for (const encodedName of projectDirs) {
-    const decodedName = decodeProjectName(encodedName);
+  const sessionMap = await parseHistoryFile(historyPath);
+  if (sessionMap.size === 0) return [];
 
-    if (projectFilter && !decodedName.includes(projectFilter)) continue;
+  const sessions: SessionMetadata[] = [];
 
-    const projectDir = path.join(projectsDir, encodedName);
-    const sessionFiles = discoverSessions(projectDir);
+  for (const [sessionId, events] of sessionMap) {
+    const userMessages = extractUserMessages(events);
+    const interruptCount = countInterrupts(events);
+    const { start, end } = getSessionTimeRange(events);
 
-    if (sessionFiles.length === 0) continue;
-
-    const sessions: SessionMetadata[] = [];
-    for (const sessionFile of sessionFiles) {
-      const filePath = path.join(projectDir, sessionFile);
-      try {
-        const metadata = await buildSessionMetadata(
-          filePath,
-          decodedName,
-          encodedName,
-        );
-        sessions.push(metadata);
-      } catch {
-        /* skip unreadable session files */
-      }
-    }
-
-    sessions.sort(
-      (left, right) => left.startTime.getTime() - right.startTime.getTime(),
-    );
-
-    projects.push({
-      projectPath: decodedName,
-      projectName: encodedName,
-      sessions,
-      totalSessions: sessions.length,
+    sessions.push({
+      sessionId,
+      projectPath: ".codex",
+      projectName: ".codex",
+      filePath: historyPath,
+      events,
+      startTime: start,
+      endTime: end,
+      userMessageCount: userMessages.length,
+      assistantMessageCount: 0,
+      toolCallCount: 0,
+      toolErrorCount: 0,
+      interruptCount,
     });
   }
 
-  projects.sort((left, right) => right.totalSessions - left.totalSessions);
+  sessions.sort(
+    (left, right) => left.startTime.getTime() - right.startTime.getTime(),
+  );
 
-  return projects;
+  return [
+    {
+      projectPath: ".codex",
+      projectName: ".codex",
+      sessions,
+      totalSessions: sessions.length,
+    },
+  ];
 };

@@ -10,7 +10,7 @@ import {
   INTERRUPT_SCORE_MULTIPLIER,
   INTERRUPT_CRITICAL_THRESHOLD,
 } from "../constants.js";
-import { parseTranscriptFile, extractUserMessages, isUserEvent } from "../parser.js";
+import { extractUserMessages, isUserEvent } from "../parser.js";
 
 const analyzer = new Sentiment();
 
@@ -34,11 +34,10 @@ const scoreMessage = (message: string): SentimentScore => {
   };
 };
 
-export const analyzeSessionSentiment = async (
-  filePath: string,
+export const analyzeSessionSentiment = (
+  events: TranscriptEvent[],
   sessionId: string,
-): Promise<SessionSentiment> => {
-  const events = await parseTranscriptFile(filePath);
+): SessionSentiment => {
   const userMessages = extractUserMessages(events);
 
   const messageScores = userMessages.map(scoreMessage);

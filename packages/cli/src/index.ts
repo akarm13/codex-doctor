@@ -1,5 +1,5 @@
-export { parseTranscriptFile, extractUserMessages, extractToolUses, extractToolErrors, countInterrupts } from "./parser.js";
-export { indexAllProjects, discoverProjects, discoverSessions } from "./indexer.js";
+export { parseTranscriptFile, parseHistoryFile, parseHistorySessionEvents, extractUserMessages, extractToolUses, extractToolErrors, countInterrupts } from "./parser.js";
+export { indexAllProjects, getHistoryFilePath } from "./indexer.js";
 export { generateReport, formatReportMarkdown, formatReportJson } from "./reporter.js";
 export { analyzeSessionSentiment, sentimentToSignals } from "./signals/sentiment.js";
 export { detectAbandonment } from "./signals/abandonment.js";

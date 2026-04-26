@@ -2,6 +2,8 @@ import * as path from "node:path";
 import { describe, it, expect } from "vite-plus/test";
 import {
   parseTranscriptFile,
+  parseHistoryFile,
+  parseHistorySessionEvents,
   extractUserMessages,
   extractToolUses,
   extractToolErrors,
@@ -174,5 +176,63 @@ describe("getSessionTimeRange", () => {
     expect(start.getTime()).toBeLessThan(end.getTime());
     expect(start.toISOString()).toBe("2026-04-01T10:00:00.000Z");
     expect(end.toISOString()).toBe("2026-04-01T10:00:20.000Z");
+  });
+});
+
+describe("parseHistoryFile", () => {
+  it("groups entries by session_id", async () => {
+    const sessions = await parseHistoryFile(fixture("history.jsonl"));
+    expect(sessions.size).toBe(2);
+    expect(sessions.has("session-aaa")).toBe(true);
+    expect(sessions.has("session-bbb")).toBe(true);
+  });
+
+  it("converts entries to UserEvents with correct content", async () => {
+    const sessions = await parseHistoryFile(fixture("history.jsonl"));
+    const events = sessions.get("session-aaa")!;
+    expect(events.length).toBe(3);
+    expect(events[0].type).toBe("user");
+    const firstEvent = events[0] as UserEvent;
+    expect(firstEvent.message.content).toBe("fix the broken login page");
+  });
+
+  it("sets timestamp from ts field (Unix seconds)", async () => {
+    const sessions = await parseHistoryFile(fixture("history.jsonl"));
+    const events = sessions.get("session-aaa")!;
+    expect(events[0].timestamp).toBe(new Date(1743501600 * 1000).toISOString());
+  });
+
+  it("preserves session_id in sessionId field", async () => {
+    const sessions = await parseHistoryFile(fixture("history.jsonl"));
+    const events = sessions.get("session-bbb")!;
+    for (const event of events) {
+      expect(event.sessionId).toBe("session-bbb");
+    }
+  });
+
+  it("makes user messages extractable by extractUserMessages", async () => {
+    const sessions = await parseHistoryFile(fixture("history.jsonl"));
+    const events = sessions.get("session-aaa")!;
+    const messages = extractUserMessages(events);
+    expect(messages).toContain("fix the broken login page");
+    expect(messages).toContain("no that's wrong, revert that change");
+  });
+});
+
+describe("parseHistorySessionEvents", () => {
+  it("returns events for a specific session", async () => {
+    const events = await parseHistorySessionEvents(
+      fixture("history.jsonl"),
+      "session-bbb",
+    );
+    expect(events.length).toBe(2);
+  });
+
+  it("returns empty array for unknown session", async () => {
+    const events = await parseHistorySessionEvents(
+      fixture("history.jsonl"),
+      "session-unknown",
+    );
+    expect(events.length).toBe(0);
   });
 });

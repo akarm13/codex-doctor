@@ -1,4 +1,4 @@
-import { parseTranscriptFile, isUserEvent, isAssistantEvent } from "../parser.js";
+import { isUserEvent, isAssistantEvent } from "../parser.js";
 import {
   CORRECTION_PATTERNS,
   KEEP_GOING_PATTERNS,
@@ -267,11 +267,10 @@ const detectFollowUpVelocity = (
   };
 };
 
-export const detectBehavioralSignals = async (
-  filePath: string,
+export const detectBehavioralSignals = (
+  events: TranscriptEvent[],
   sessionId: string,
-): Promise<SignalResult[]> => {
-  const events = await parseTranscriptFile(filePath);
+): SignalResult[] => {
   const turns = extractConversationTurns(events);
   const userTurns = extractUserTurns(turns);
   const signals: SignalResult[] = [];

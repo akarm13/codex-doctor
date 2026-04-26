@@ -85,11 +85,18 @@ type TranscriptEvent =
   | QueueOperationEvent
   | BaseEvent;
 
+interface HistoryEntry {
+  session_id: string;
+  ts: number;
+  text: string;
+}
+
 interface SessionMetadata {
   sessionId: string;
   projectPath: string;
   projectName: string;
   filePath: string;
+  events: TranscriptEvent[];
   startTime: Date;
   endTime: Date;
   userMessageCount: number;

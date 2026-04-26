@@ -14,6 +14,8 @@ import { detectThrashing } from "./signals/thrashing.js";
 import { detectErrorLoops } from "./signals/error-loops.js";
 import { detectToolInefficiency } from "./signals/tool-efficiency.js";
 import { detectBehavioralSignals } from "./signals/behavioral.js";
+import { parseHistoryFile } from "./parser.js";
+import { HISTORY_FILENAME } from "./indexer.js";
 
 const MODEL_DIR = ".codex-doctor";
 const MODEL_FILE = "model.json";
@@ -166,31 +168,25 @@ const buildGuidanceDoc = (model: SavedModel): string => {
 };
 
 export const checkSession = async (
-  sessionFilePath: string,
+  events: TranscriptEvent[],
   sessionId: string,
   savedModel?: SavedModel,
 ): Promise<CheckResult> => {
   const signals: SignalResult[] = [];
 
-  const sentiment = await analyzeSessionSentiment(sessionFilePath, sessionId);
+  const sentiment = analyzeSessionSentiment(events, sessionId);
   signals.push(...sentimentToSignals(sentiment));
 
-  const thrashingSignals = await detectThrashing(sessionFilePath, sessionId);
+  const thrashingSignals = detectThrashing(events, sessionId);
   signals.push(...thrashingSignals);
 
-  const errorLoopSignals = await detectErrorLoops(sessionFilePath, sessionId);
+  const errorLoopSignals = detectErrorLoops(events, sessionId);
   signals.push(...errorLoopSignals);
 
-  const efficiencySignals = await detectToolInefficiency(
-    sessionFilePath,
-    sessionId,
-  );
+  const efficiencySignals = detectToolInefficiency(events, sessionId);
   signals.push(...efficiencySignals);
 
-  const behavioralSignals = await detectBehavioralSignals(
-    sessionFilePath,
-    sessionId,
-  );
+  const behavioralSignals = detectBehavioralSignals(events, sessionId);
   signals.push(...behavioralSignals);
 
   const guidance = buildSessionGuidance(signals, savedModel);
@@ -286,48 +282,33 @@ const buildSessionGuidance = (
   return guidance;
 };
 
-export const findLatestSession = (
-  projectFilter?: string,
-): { filePath: string; sessionId: string } | undefined => {
-  const projectsDir = path.join(os.homedir(), CODEX_SESSIONS_DIR);
-  if (!fs.existsSync(projectsDir)) return undefined;
+export const findLatestSession = async (): Promise<
+  { sessionId: string; events: TranscriptEvent[] } | undefined
+> => {
+  const historyPath = path.join(os.homedir(), CODEX_SESSIONS_DIR, HISTORY_FILENAME);
+  if (!fs.existsSync(historyPath)) return undefined;
 
-  const projectDirs = fs
-    .readdirSync(projectsDir, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
+  const sessionMap = await parseHistoryFile(historyPath);
+  if (sessionMap.size === 0) return undefined;
 
-  let latestTime = 0;
-  let latestFile: string | undefined;
+  let latestTs = -Infinity;
+  let latestSessionId: string | undefined;
 
-  for (const projectDir of projectDirs) {
-    if (projectFilter) {
-      const decoded = projectDir.replace(/-/g, "/").replace(/^\//, "");
-      if (!decoded.includes(projectFilter)) continue;
-    }
-
-    const fullDir = path.join(projectsDir, projectDir);
-    const files = fs
-      .readdirSync(fullDir)
-      .filter(
-        (fileName) =>
-          fileName.endsWith(".jsonl") && !fileName.startsWith("agent-"),
-      );
-
-    for (const file of files) {
-      const filePath = path.join(fullDir, file);
-      const stat = fs.statSync(filePath);
-      if (stat.mtimeMs > latestTime) {
-        latestTime = stat.mtimeMs;
-        latestFile = filePath;
+  for (const [sessionId, events] of sessionMap) {
+    for (const event of events) {
+      if (!event.timestamp) continue;
+      const ts = new Date(event.timestamp).getTime();
+      if (ts > latestTs) {
+        latestTs = ts;
+        latestSessionId = sessionId;
       }
     }
   }
 
-  if (!latestFile) return undefined;
+  if (!latestSessionId) return undefined;
 
   return {
-    filePath: latestFile,
-    sessionId: path.basename(latestFile, ".jsonl"),
+    sessionId: latestSessionId,
+    events: sessionMap.get(latestSessionId) ?? [],
   };
 };
