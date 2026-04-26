@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
-import { CODEX_SESSIONS_DIR } from "./constants.js";
+import { CODEX_SESSIONS_DIR, HISTORY_PROJECT_NAME } from "./constants.js";
 import {
   parseHistoryFile,
   extractUserMessages,
@@ -32,8 +32,8 @@ export const indexAllProjects = async (
 
     sessions.push({
       sessionId,
-      projectPath: ".codex",
-      projectName: ".codex",
+      projectPath: HISTORY_PROJECT_NAME,
+      projectName: HISTORY_PROJECT_NAME,
       filePath: historyPath,
       events,
       startTime: start,
@@ -52,8 +52,8 @@ export const indexAllProjects = async (
 
   return [
     {
-      projectPath: ".codex",
-      projectName: ".codex",
+      projectPath: HISTORY_PROJECT_NAME,
+      projectName: HISTORY_PROJECT_NAME,
       sessions,
       totalSessions: sessions.length,
     },

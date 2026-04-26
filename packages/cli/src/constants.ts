@@ -1,4 +1,5 @@
 export const CODEX_SESSIONS_DIR = ".codex";
+export const HISTORY_PROJECT_NAME = ".codex";
 
 export const ABANDONMENT_WINDOW_MS = 30 * 60 * 1000;
 export const SHORT_SESSION_THRESHOLD = 3;

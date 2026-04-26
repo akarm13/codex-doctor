@@ -144,6 +144,11 @@ const historyEntryToTranscriptEvent = (entry: HistoryEntry): UserEvent => ({
   message: { role: "user", content: entry.text },
 });
 
+const isValidHistoryEntry = (entry: HistoryEntry): boolean =>
+  Boolean(entry.session_id) &&
+  typeof entry.ts === "number" &&
+  typeof entry.text === "string";
+
 export const parseHistoryFile = async (
   filePath: string,
 ): Promise<Map<string, TranscriptEvent[]>> => {
@@ -155,7 +160,7 @@ export const parseHistoryFile = async (
     if (!line.trim()) continue;
     try {
       const entry = JSON.parse(line) as HistoryEntry;
-      if (!entry.session_id || typeof entry.ts !== "number" || typeof entry.text !== "string") continue;
+      if (!isValidHistoryEntry(entry)) continue;
       const existing = sessions.get(entry.session_id) ?? [];
       existing.push(historyEntryToTranscriptEvent(entry));
       sessions.set(entry.session_id, existing);
